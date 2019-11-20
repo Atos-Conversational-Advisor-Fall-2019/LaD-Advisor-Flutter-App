@@ -13,9 +13,14 @@ class Chatbot extends StatefulWidget {
   _HomePageDialogflowV2 createState() => _HomePageDialogflowV2();
 }
 
+var myinitials = ""; // initials in RHS icon bubble
+
 class _HomePageDialogflowV2 extends State<Chatbot> {
   final List<ChatMessage> _messages = <ChatMessage>[];
   final TextEditingController _textController = TextEditingController();
+
+  static var counter = 1; // ensures initial message is only displayed once
+  var namefin = "Me"; // final name displayed on user side after "Me"
 
   Widget _buildTextComposer() {
     return IconTheme(
@@ -68,6 +73,14 @@ class _HomePageDialogflowV2 extends State<Chatbot> {
     String br = "<br>";
     message.text = message.text.replaceAll(br, '\n');
 
+    var str = message.text;
+    if(str.startsWith("Hello ") == true) {
+      str = str.replaceAll("Hello ", "");
+      str = str.replaceAll("! How may I help you today?", "");
+      namefin = str;
+      myinitials = str.replaceAll(new RegExp(r'[^A-Z]'), '');
+    }
+
     setState(() {
       _messages.insert(0, message);
     });
@@ -77,17 +90,37 @@ class _HomePageDialogflowV2 extends State<Chatbot> {
     _textController.clear();
     ChatMessage message = ChatMessage(
       text: text,
-      name: "Me",
+      name: namefin,
       type: true,
     );
+
+    if(counter > 2){
+      message.name = namefin;
+    }
+
     setState(() {
       _messages.insert(0, message);
     });
     response(text);
+    counter = counter + 1;
   }
 
   @override
   Widget build(BuildContext context) {
+
+    if(counter == 1){ // display initial message
+      ChatMessage message = ChatMessage(
+        text: "Welcome to the Learning and Development chatbot! "
+            "To start out conversation, I would like you to first enter your id.",
+        name: "LaD",
+        type: false,
+      );
+      setState(() {
+        _messages.insert(0, message);
+      });
+      counter = counter + 1;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Atos Learning and Development Advisor"),
@@ -116,9 +149,9 @@ class ChatMessage extends StatelessWidget {
     this.name,
     this.type,
   });
-  //
+
   String text;
-  final String name;
+  String name;
   final bool type;
 
   List<Widget> otherMessage(context) {
@@ -164,7 +197,7 @@ class ChatMessage extends StatelessWidget {
       Container(
         margin: const EdgeInsets.only(left: 16.0),
         child: CircleAvatar(
-          child: Text(this.name[0]),
+          child: Text(myinitials),
         ),
       ),
     ];
